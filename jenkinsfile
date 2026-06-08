@@ -16,7 +16,6 @@ pipeline {
         stage('Build Application') {
             steps {
                 echo 'Moving into demo directory and building JAR...'
-                // Tells Jenkins to change directory into the 'demo' folder
                 dir('demo') {
                     sh 'mvn clean package -DskipTests'
                 }
@@ -25,10 +24,8 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                echo "Building Docker Container..."
-                // Tells Jenkins to step into 'demo' where the Dockerfile lives
-                    sh "docker build -t ${DOCKER_IMAGE}:latest ."
-                }
+                echo "Building Docker Container from root directory..."
+                sh "docker build -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
@@ -47,7 +44,6 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 echo 'Deploying application manifests to Amazon EKS...'
-                // deployment.yml and service.yml are in the root directory, so NO dir() is needed here!
                 // sh 'kubectl apply -f deployment.yml'
                 // sh 'kubectl apply -f service.yml'
             }
