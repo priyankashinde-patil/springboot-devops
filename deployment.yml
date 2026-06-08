@@ -1,24 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
-
 metadata:
-  name: springboot-app
-
+  name: springboot-deployment
 spec:
-  replicas: 2
-
+  replicas: 1
   selector:
     matchLabels:
-      app: springboot
-
+      app: springboot  # Update this
   template:
     metadata:
       labels:
-        app: springboot
-
+        app: springboot  # Update this
     spec:
       containers:
-      - name: springboot
-        image: yourdockerhub/springboot-app
-        ports:
-        - containerPort: 8080
+        - name: springboot
+          image: priyushinde/app:latest
+          ports:
+            - containerPort: 8080
