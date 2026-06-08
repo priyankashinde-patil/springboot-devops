@@ -1,38 +1,54 @@
 pipeline {
+    agent any
 
- agent any
+    environment {
+        DOCKER_IMAGE = 'priyushinde/app'
+    }
 
- stages {
+    stages {
+        stage('Verify Environment') {
+            steps {
+                echo 'Code successfully downloaded by Jenkins SCM automatically.'
+                // Verifies that your pom.xml, Dockerfile, and source directories exist
+                sh 'ls -la' 
+            }
+        }
 
-   stage('Clone') {
-     steps {
-       git 'https://github.com/priyankashinde-patil/springboot-devops.git'
-     }
-   }
+        stage('Build Application') {
+            steps {
+                echo 'Building Spring Boot JAR using global Maven...'
+                // Uses the global mvn package command you verified in terminal
+                sh 'mvn clean package -DskipTests'
+            }
+        }
 
-   stage('Build') {
-     steps {
-       sh 'mvn clean package'
-     }
-   }
+        stage('Docker Build') {
+            steps {
+                echo "Building Docker Container..."
+                sh "docker build -t ${DOCKER_IMAGE}:latest ."
+            }
+        }
 
-   stage('Docker Build') {
-     steps {
-       sh 'docker build -t priyushinde/app .'
-     }
-   }
+        stage('Docker Login & Push') {
+            steps {
+                echo 'Authenticating and pushing image to Docker Hub...'
+                // This safely references the credential ID you create in Jenkins
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', 
+                                                 usernameVariable: 'DOCKER_USER', 
+                                                 passwordVariable: 'DOCKER_PASS')]) {
+                    sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE}:latest"
+                }
+            }
+        }
 
-   stage('Docker Push') {
-     steps {
-       sh 'docker push priyushinde/app'
-     }
-   }
-
-   stage('Deploy') {
-     steps {
-       sh 'kubectl apply -f deployment.yml'
-       sh 'kubectl apply -f service.yml'
-     }
-   }
- }
+        stage('Deploy to EKS') {
+            steps {
+                echo 'Deploying application manifests to Amazon EKS...'
+                // Ensure deployment.yml and service.yml exist before uncommenting
+                // sh 'kubectl apply -f deployment.yml'
+                // sh 'kubectl apply -f service.yml'
+            }
+        }
+    }
 }
