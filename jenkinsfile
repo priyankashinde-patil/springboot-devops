@@ -1,0 +1,38 @@
+pipeline {
+
+ agent any
+
+ stages {
+
+   stage('Clone') {
+     steps {
+       git 'REPO_URL'
+     }
+   }
+
+   stage('Build') {
+     steps {
+       sh 'mvn clean package'
+     }
+   }
+
+   stage('Docker Build') {
+     steps {
+       sh 'docker build -t username/app .'
+     }
+   }
+
+   stage('Docker Push') {
+     steps {
+       sh 'docker push username/app'
+     }
+   }
+
+   stage('Deploy') {
+     steps {
+       sh 'kubectl apply -f deployment.yml'
+       sh 'kubectl apply -f service.yml'
+     }
+   }
+ }
+}
