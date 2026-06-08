@@ -6,7 +6,7 @@ pipeline {
 
    stage('Clone') {
      steps {
-       git 'REPO_URL'
+       git 'https://github.com/priyankashinde-patil/springboot-devops.git'
      }
    }
 
@@ -18,13 +18,13 @@ pipeline {
 
    stage('Docker Build') {
      steps {
-       sh 'docker build -t username/app .'
+       sh 'docker build -t priyushinde/app .'
      }
    }
 
    stage('Docker Push') {
      steps {
-       sh 'docker push username/app'
+       sh 'docker push priyushinde/app'
      }
    }
 
