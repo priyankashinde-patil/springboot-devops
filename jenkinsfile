@@ -9,30 +9,33 @@ pipeline {
         stage('Verify Environment') {
             steps {
                 echo 'Code successfully downloaded by Jenkins SCM automatically.'
-                // Verifies that your pom.xml, Dockerfile, and source directories exist
                 sh 'ls -la' 
             }
         }
 
         stage('Build Application') {
             steps {
-                echo 'Building Spring Boot JAR using global Maven...'
-                // Uses the global mvn package command you verified in terminal
-                sh 'mvn clean package -DskipTests'
+                echo 'Moving into demo directory and building JAR...'
+                // Tells Jenkins to change directory into the 'demo' folder
+                dir('demo') {
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
 
         stage('Docker Build') {
             steps {
                 echo "Building Docker Container..."
-                sh "docker build -t ${DOCKER_IMAGE}:latest ."
+                // Tells Jenkins to step into 'demo' where the Dockerfile lives
+                dir('demo') {
+                    sh "docker build -t ${DOCKER_IMAGE}:latest ."
+                }
             }
         }
 
         stage('Docker Login & Push') {
             steps {
                 echo 'Authenticating and pushing image to Docker Hub...'
-                // This safely references the credential ID you create in Jenkins
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', 
                                                  usernameVariable: 'DOCKER_USER', 
                                                  passwordVariable: 'DOCKER_PASS')]) {
@@ -45,7 +48,7 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 echo 'Deploying application manifests to Amazon EKS...'
-                // Ensure deployment.yml and service.yml exist before uncommenting
+                // deployment.yml and service.yml are in the root directory, so NO dir() is needed here!
                 // sh 'kubectl apply -f deployment.yml'
                 // sh 'kubectl apply -f service.yml'
             }
